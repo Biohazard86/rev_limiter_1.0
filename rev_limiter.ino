@@ -133,62 +133,82 @@ void lights_func(){
 
 long choose_max_rpm(long value_a0){
     if(value_a0 < 68){
-        return 1300; 
-     }
-    if((value_a0 >= 68) && (value_a0 < 123) ){
-        return 1600; 
-     }
-     if((value_a0 >= 123) && (value_a0 < 178) ){
-        return 1900; 
-     }
-     if((value_a0 >= 178) && (value_a0 < 233) ){
-        return 2200; 
-     }
-     if((value_a0 >= 233) && (value_a0 < 288) ){
-        return 2500; 
-     }
-     if((value_a0 >= 288) && (value_a0 < 343) ){
-        return 2800; 
-     }
-     if((value_a0 >= 343) && (value_a0 < 398) ){
-        return 3100; 
-     }
-     if((value_a0 >= 398) && (value_a0 < 453) ){
-        return 3400; 
-     }
-     if((value_a0 >= 453) && (value_a0 < 508) ){
-        return 3700; 
-     }
-     if((value_a0 >= 508) && (value_a0 < 563) ){
-        return 4000; 
-     }
-     if((value_a0 >= 563) && (value_a0 < 618) ){
-        return 4300; 
-     }
-     if((value_a0 >= 618) && (value_a0 < 673) ){
-        return 4600; 
-     }
-     if((value_a0 >= 673) && (value_a0 < 728) ){
-        return 4900; 
-     }
-     if((value_a0 >= 728) && (value_a0 < 783) ){
-        return 5200; 
-     }
-     if((value_a0 >= 783) && (value_a0 < 838) ){
-        return 5500; 
-     }
-     if((value_a0 >= 838) && (value_a0 < 893) ){
-        return 5800; 
-     }
-     if((value_a0 >= 893) && (value_a0 < 948) ){
-        return 6100; 
-     }
-     if((value_a0 >= 948) && (value_a0 < 1003) ){
-        return 6400; 
-     }
-     if((value_a0 >= 1003) && (value_a0 < 1058) ){
         return 6700; 
      }
+    if((value_a0 >= 68) && (value_a0 < 123) ){
+        //return 1600; 
+        return 6400;
+     }
+     if((value_a0 >= 123) && (value_a0 < 178) ){
+        //return 1900;
+         return 6100;
+     }
+     if((value_a0 >= 178) && (value_a0 < 233) ){
+        //return 2200; 
+        return 5800;
+     }
+     if((value_a0 >= 233) && (value_a0 < 288) ){
+        //return 2500; 
+         return 5500;
+     }
+     if((value_a0 >= 288) && (value_a0 < 343) ){
+        //return 2800; 
+        return 5200;
+     }
+     if((value_a0 >= 343) && (value_a0 < 398) ){
+        //return 3100; 
+        return 4900;
+        
+     }
+     if((value_a0 >= 398) && (value_a0 < 453) ){
+        //return 3400; 
+        return 4600;
+     }
+     if((value_a0 >= 453) && (value_a0 < 508) ){
+        //return 3700; 
+         return 4300;
+     }
+     if((value_a0 >= 508) && (value_a0 < 563) ){
+        //return 4000; 
+        return 4000;
+     }
+     if((value_a0 >= 563) && (value_a0 < 618) ){
+        //return 4300; 
+         return 3700;
+     }
+     if((value_a0 >= 618) && (value_a0 < 673) ){
+        //return 4600; 
+         return 3400;
+     }
+     if((value_a0 >= 673) && (value_a0 < 728) ){
+        //return 4900; 
+         return 3100;
+     }
+     if((value_a0 >= 728) && (value_a0 < 783) ){
+        //return 5200; 
+        return 2800;
+     }
+     if((value_a0 >= 783) && (value_a0 < 838) ){
+        //return 5500; 
+        return 2500;
+     }
+     if((value_a0 >= 838) && (value_a0 < 893) ){
+        //return 5800; 
+        return 2200;
+     }
+     if((value_a0 >= 893) && (value_a0 < 938) ){
+        //return 6100; 
+        return 1900;
+     }
+     if((value_a0 >= 938) && (value_a0 < 993) ){
+        //return 6400; 
+        return 1500;
+     }
+    /* if((value_a0 >= 993) && (value_a0 < 1058) ){
+        //return 6700; 
+        return 1300;
+     }
+     */
 
      /*
 13  1300
@@ -257,6 +277,11 @@ void loop() {
       //Imprimimos por el monitor serie
       Serial.print("\n RPM MAX >>>    ");
       Serial.print(max_rpm);
+      Serial.print("\n R VALUE :::");
+      Serial.print(value_a0);
+      Serial.print("\n -------------\n");
+      Serial.print(actual_rpm);
+      Serial.print("\n -------------");
       Serial.print("\nStatus    ");
       Serial.print(value);  // 0 es activado
       Serial.print("\n\n\n --------------------------    ");
