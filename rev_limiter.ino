@@ -1,18 +1,14 @@
 /*
 Biohazard_86
 
-Saab Trionic 5 to Bmw E36 cluster RPM conversion by davidbarrios@usal.es
+REV. limiter by davidbarrios@usal.es
 
 TESTED in:
 BMW E36 316i M40B16 to TRIONIC 5 ECU
 
-Most of the Saab dashboards works with 2 or 4 pulses per rev. 
+Most of the car dashboards works with 2 or 4 pulses per rev. 
 
-BMW E36 cluster uses 3 pulses per rev
-
-Maximum pulses per rev is:
-7000*2 = 14.000 in the Saab output of the ECU
-7000*3 = 21.000 to the BMW cluster
+BMW E36 6 cyl cluster uses 3 pulses per rev
 
 21krpm / 60secs = 350 rev per sec 
 1/350hz = 2.8571*10^-3 
@@ -23,24 +19,15 @@ Arduino allows up to 8Mhz input/output frecuency
 */
 
 
-// Define the pulses per revolution of both cars
-#define bmw_pulses_rev  3
-#define saab_pulses_rev  2
-#define max_rpm_output_allowed 7100 // to cant broke the E36 cluster putting 100k rpm on the cluster
-int rev_limit_1 = 1800;
-int rev_limit_2 = 5500;
-int rev_limit_3 = 6100;
-const int inputPin = 2;
-const int pinRELE = 7;
+// Define the pulses per revolution 
+#define pulses_rev  2   // Change this! always is 2 or 4 pulses per rev.
+#define max_rpm_output_allowed 7100 // vtec boys doesnt like this... hehehe 
 
 //Define the pins
-int input_saab = 2;   // In the pin 13 of the arduino we have the ECU output from the Saab ECU
-int output_bmw = 3;    // In the pin 3 of the arduino we have the dashboard input
-
-// We have differents lights for the rev limiter. For example, 1st for the max torque point. 2nd for the max hp output and 3rd if you're near the rpm limiter
-int lightrevlim1 = 4;
-int lightrevlim2 = 5;
-int lightrevlim3 = 6;
+const int inputPin = 9; //read the buton
+const int pinRELE = 7;  // to the rele
+const int outputPin = 5;  //To turn on the button
+int input_rpm = 2;   // In the pin 13 of the arduino we have the ECU output from the Saab ECU
 
 
 //Variable
@@ -51,87 +38,47 @@ double frek = 0;
 unsigned int time_1 = 0;
 unsigned int time_2 = 0;
 int counter = 0;
-int counter2 = 0;
-unsigned int t_lights_1 = 0;
-unsigned int t_lights_2 = 0;
 volatile bool flag = false;
-bool flag_serial = false;
-bool flag_lights = false;
-char data;
 long value_a0;
 long max_rpm;
 int value;
 
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void setup() {
-  Serial.begin(9600);   //Serial port
-   pinMode(inputPin, INPUT);
-   pinMode(pinRELE, OUTPUT);
-  pinMode(input_saab, INPUT);  //We define the pin 1 called input_saab as an input
-  pinMode(output_bmw, OUTPUT);  //We define the pin 3 called output_bmw as an output
-
-  //............
-
-  pinMode(lightrevlim1, OUTPUT);  //led 1
-  pinMode(lightrevlim2, OUTPUT);  // led 2
-  pinMode(lightrevlim3, OUTPUT);  // led 3
-
-
-  // Serial output
-  Serial.print("\n\n\n---------------------------------------------\n");
-  Serial.print("    SAAB Trionic 5 to BMW E36 cluster\n");
-  Serial.print("               Biohazard_86\n");
-  Serial.print("--------------------------------------------\n");
-
-
- counter = 0;  
+    Serial.begin(9600);   //Serial port
+    pinMode(input_rpm, INPUT);  //We define the pin 2 called input_rpm as an input
+    pinMode(inputPin, INPUT);   // Buton pin
+    pinMode(pinRELE, OUTPUT);   // Rele pin
+    pinMode(outputPin, OUTPUT); // buton turn on pin
+    
+    // Serial output
+    Serial.print("\n\n\n---------------------------------------------\n");
+    Serial.print("         REV. LIMITER  1.5k to 6.7k rpm \n");
+    Serial.print("               Biohazard_86\n");
+    Serial.print("--------------------------------------------\n");
+    counter = 0;  
 }
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+//========================================================================================
+//this function calculates the actual rpm.
 void rpm_fun() {
-  if(counter == 0){
-    time_1=micros();
-    counter++;
-    flag=false;
+  if(counter == 0){ //if is the first time we call this function
+    time_1=micros();  // save the time in microseconds
+    counter++;        // add 1 to the counter to dont enter in the if in the next time we call rpm_fun
+    flag=false;       // flag to doesnt show the rpm yet
   }
-  else{
-    counter = 0;
-    time_2=micros();
-    flag=true;
-    }
+  else{               //2nd time we call rpm_fun
+    counter = 0;      // set 0 to counter to the next time we call rpm_fun to enter in the if
+    time_2=micros();  // save the time 
+    flag=true;        // turn on the flag to can show the rpm
+    } 
   }
+//========================================================================================
 
-
-void lights_func(){
-  if(actual_rpm > rev_limit_3){
-      digitalWrite(lightrevlim3, HIGH);   //
-    }
-  else{
-      digitalWrite(lightrevlim3, LOW);
-    }
-  
-  
-
-  if(actual_rpm > rev_limit_2){
-      digitalWrite(lightrevlim2, HIGH);   //
-    }
-  else{
-      digitalWrite(lightrevlim2, LOW);
-    }
-  
-  
-
-
-  if(actual_rpm > rev_limit_1){
-      digitalWrite(lightrevlim1, HIGH);   //
-    }
-  else{
-      digitalWrite(lightrevlim1, LOW);
-    }
-  
-  
-
-}
-
-long choose_max_rpm(long value_a0){
+//||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+// User choose the max rpm (potentiometer) when press the button 
+long choose_max_rpm(long value_a0){   // value_a0 is the potentiometer value
     if(value_a0 < 68){
         return 6700; 
      }
@@ -204,11 +151,7 @@ long choose_max_rpm(long value_a0){
         //return 6400; 
         return 1500;
      }
-    /* if((value_a0 >= 993) && (value_a0 < 1058) ){
-        //return 6700; 
-        return 1300;
-     }
-     */
+
 
      /*
 13  1300
@@ -233,95 +176,53 @@ long choose_max_rpm(long value_a0){
 1058  7000
 
     */ 
-  }
+  } 
+//||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 
 void loop() {
-  // We read the A0 value
-  value_a0 = analogRead(A0);
-  value = digitalRead(inputPin);  //lectura digital de pin
+  // We read the A0 value (potentiometer)
+  value_a0 = analogRead(A0);  // save that value in value_a0
   max_rpm = choose_max_rpm(value_a0);
 
   
   
-  attachInterrupt(0, rpm_fun, RISING);
+  attachInterrupt(0, rpm_fun, RISING);  // 0 is pin 2 (only 2 and 3 pins can handle interrupts); calls rpm_fun; RISING to trigger when the pin goes from low to high; 
   if(flag){
-    detachInterrupt(0);
-    time_per_pulse_micro = (time_2 - time_1);
-    
-    time_per_pulse_ms = time_per_pulse_micro / 1000.00;
-    
-    frek = pow((time_per_pulse_ms / 1000), -1); 
-    
-    actual_rpm = (frek * 60)/ saab_pulses_rev;
-
-    counter2++;
-    if(counter2>0){
-      //Serial.print("\n RREK:   ");
-      //Serial.print("\n");
-      //Serial.print(frek);
+    detachInterrupt(0); // turn off interrupts
+    time_per_pulse_micro = (time_2 - time_1); //  calculate the time per pulse in micro seconds
+    time_per_pulse_ms = time_per_pulse_micro / 1000.00;   // calculate the time per pulse in micro seconds   
+    frek = pow((time_per_pulse_ms / 1000), -1); // calculates the frecuency 
+    actual_rpm = (frek * 60)/ pulses_rev; // calculates the actual rpm of the engine
       
-      //Serial.print("\n TPP micro:  ");
-      //Serial.print("\n");
-      //Serial.print(time_per_pulse_micro);
-
-    
-      //Serial.print("\n TPP ms:  ");
-      //Serial.print("\n");
-      //Serial.print(time_per_pulse_ms);
-
-    
-      //Serial.print("\n RPM:   ");
+      // Serial prints:
+      //------------------------------------------------
+      Serial.print(actual_rpm);   //Shows the actual rpm
+      Serial.print("    ");       // nothing
+      Serial.print(max_rpm);      // Shows the max rpm allowed by the potentiometer
+      Serial.print("   ");
       Serial.print("\n");
-      Serial.print(actual_rpm);
-      //Imprimimos por el monitor serie
-      Serial.print("\n RPM MAX >>>    ");
-      Serial.print(max_rpm);
-      Serial.print("\n R VALUE :::");
-      Serial.print(value_a0);
-      Serial.print("\n -------------\n");
-      Serial.print(actual_rpm);
-      Serial.print("\n -------------");
-      Serial.print("\nStatus    ");
-      Serial.print(value);  // 0 es activado
-      Serial.print("\n\n\n --------------------------    ");
-
-      counter2=0;
-    }
-    
+      //------------------------------------------------
     flag=false;
     }
 
-    // 10 times per second
-    if(flag_lights == false){
-      t_lights_1 = millis();
-      flag_lights = true;
-      }
-    if(flag_lights){
-      if(t_lights_1 > 100){
-        lights_func();
-        flag_lights == false;
-      }
-      
-      }
-
     
-    if((actual_rpm > max_rpm) && (value == 0)){ // 0 es activado
-      digitalWrite(pinRELE, HIGH);
-      Serial.print("\n RELE ON");
-      
-      }
-    if((actual_rpm < max_rpm) && (value == 0)){
-      digitalWrite(pinRELE, LOW);
-      Serial.print("\n RELE OFF");    
-      }
-
-      if(value == 1){
-      digitalWrite(pinRELE, LOW);
-      Serial.print("\n RELE OFF");    
-      }
-  
-
     
+  if(actual_rpm > max_rpm){   //if rpm > max_rpm (potentiometer) then we can read the button
+    digitalWrite(outputPin, HIGH);  // power on the button
+    value = digitalRead(inputPin);  //read the button
+    digitalWrite(outputPin, LOW);   //power off
+    if(value == 1){ //if the buton is on then cut off the rele
+        digitalWrite(pinRELE, LOW);  //cut off
+      }
+    else{   // else 
+        digitalWrite(pinRELE, HIGH); // dont cut off 
+      }
+    
+  } //end if
+  else{ //if the rpm < max_rpm (potentiometer) dont cut the rele
+      digitalWrite(pinRELE, HIGH); //dont cut the rele
+    }
+
 
 }
