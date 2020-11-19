@@ -23,6 +23,7 @@ Arduino allows up to 8Mhz input/output frecuency
 #define pulses_rev  2   // Change this! always is 2 or 4 pulses per rev.
 #define max_rpm_output_allowed 7100 // vtec boys doesnt like this... hehehe 
 
+
 //Define the pins
 const int inputPin = 9; //read the buton
 const int pinRELE = 7;  // to the rele
@@ -42,6 +43,8 @@ volatile bool flag = false;
 long value_a0;
 long max_rpm;
 int value;
+int cut_off_time = 10;  // time that Arduino has to pass in to the if to can cut the engine.
+
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 void setup() {
@@ -198,9 +201,9 @@ void loop() {
       // Serial prints:
       //------------------------------------------------
       Serial.print(actual_rpm);   //Shows the actual rpm
-      Serial.print("    ");       // nothing
+      Serial.print("  ");       // nothing
       Serial.print(max_rpm);      // Shows the max rpm allowed by the potentiometer
-      Serial.print("   ");
+      
       Serial.print("\n");
       //------------------------------------------------
     flag=false;
@@ -213,7 +216,12 @@ void loop() {
     value = digitalRead(inputPin);  //read the button
     digitalWrite(outputPin, LOW);   //power off
     if(value == 1){ //if the buton is on then cut off the rele
-        digitalWrite(pinRELE, LOW);  //cut off
+////////
+        if(cut_off_time == 10){ // if cut_off_time is 10, Arduino can cuts negative side of the coil
+         digitalWrite(pinRELE, LOW);  //cut off
+         cut_off_time = 0;    // puts cut_off_time to 0
+        }
+        cut_off_time++; //Add 1 to cutt off time
       }
     else{   // else 
         digitalWrite(pinRELE, HIGH); // dont cut off 
