@@ -4,7 +4,7 @@ Biohazard_86
 REV. limiter by davidbarrios@usal.es
 
 TESTED in:
-BMW E36 316i M40B16 to TRIONIC 5 ECU
+BMW E36 316i M40B16
 
 Most of the car dashboards works with 2 or 4 pulses per rev. 
 
